@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#fff9f2" />
+  <meta name="description" content="A playful world map for exploring a mockup of global news at a glance." />
+  <title>World in a Minute — Global news at a glance</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Nunito:wght@500;600;700;800;900&display=swap');
+
+    :root {
+      --ink: #302a3b;
+      --muted: #87818c;
+      --paper: #fffaf4;
+      --card: #fff;
+      --line: #f0e9e1;
+      --coral: #f06458;
+      --pink: #fff0ed;
+      --lav: #f0ecfb;
+      --shadow: 0 12px 36px #4e37420c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    button,
+    input {
+      color: inherit;
+      font: inherit;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .app {
+      max-width: 1450px;
+      margin: auto;
+      padding: 28px 42px 38px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 15px;
+      background: #ffe5dd;
+      box-shadow: inset 0 -3px #f7d1c6;
+      font-size: 23px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font: 900 20px 'Nunito', sans-serif;
+      letter-spacing: -.4px;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .date-pill,
+    .demo-pill {
+      padding: 9px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #625b66;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .demo-pill {
+      border: 0;
+      background: #fff4d8;
+      color: #8e6931;
+    }
+
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin: 0 0 19px;
+    }
+
+    .intro h2 {
+      margin: 0 0 5px;
+      font: 900 clamp(25px, 3vw, 34px) 'Nunito', sans-serif;
+      letter-spacing: -1px;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .source-note {
+      padding-bottom: 3px;
+      color: #9c959d;
+      font-size: 11px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(330px, .82fr);
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .map-card,
+    .news-card {
+      border: 1px solid #f1eae3;
+      border-radius: 23px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .map-card {
+      position: relative;
+      min-height: 600px;
+      padding: 22px 24px 18px;
+      overflow: hidden;
+    }
+
+    .map-head {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .map-head h3,
+    .news-head h3 {
+      margin: 0;
+      font: 800 16px 'Nunito', sans-serif;
+    }
+
+    .map-head p {
+      margin: 4px 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .map-badge {
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: var(--lav);
+      color: #7a7182;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .map-wrap {
+      position: relative;
+      height: 430px;
+      margin-top: 8px;
+      border-radius: 18px;
+      background: radial-gradient(ellipse at 50% 49%, #fffdfa 0, #fff 70%);
+    }
+
+    .world {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .country {
+      cursor: pointer;
+      stroke: #fffaf4;
+      stroke-linejoin: round;
+      stroke-width: .7;
+      transition: filter .2s, opacity .2s;
+    }
+
+    .country:hover,
+    .country:focus {
+      outline: none;
+      stroke: #4e414b;
+      stroke-width: 1.6;
+      filter: brightness(.92);
+    }
+
+    .country.selected {
+      stroke: #392f3d;
+      stroke-width: 1.7;
+      filter: drop-shadow(0 2px 2px #302a3b35);
+    }
+
+    .map-loading {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #8a818c;
+      font-size: 13px;
+    }
+
+    .map-error {
+      max-width: 330px;
+      padding: 16px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .map-legend {
+      position: absolute;
+      bottom: 19px;
+      left: 24px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #827b83;
+      font-size: 10px;
+    }
+
+    .legend-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .legend-dots span {
+      display: block;
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+
+    .map-foot {
+      position: absolute;
+      right: 23px;
+      bottom: 19px;
+      color: #aaa2a9;
+      font-size: 10px;
+    }
+
+    .news-card {
+      display: flex;
+      min-height: 600px;
+      padding: 21px 21px 17px;
+      flex-direction: column;
+    }
+
+    .news-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .news-head h3 {
+      font-size: 19px;
+    }
+
+    .news-sub {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .story-count {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--pink);
+      color: #bf564d;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .country-search {
+      width: 100%;
+      margin-top: 12px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      outline: none;
+      background: #fff;
+      color: #5e5662;
+      font-size: 11px;
+    }
+
+    .country-search:focus {
+      border-color: #e59889;
+      box-shadow: 0 0 0 3px #f0645818;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      padding: 12px 0 8px;
+      overflow-x: auto;
+    }
+
+    .filter {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #77717a;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .filter.active {
+      border-color: #332c3d;
+      background: #332c3d;
+      color: #fff;
+    }
+
+    .filter:focus-visible,
+    .country:focus-visible {
+      outline: 3px solid #e59889;
+      outline-offset: 2px;
+    }
+
+    .stories {
+      max-height: 395px;
+      padding-right: 3px;
+      overflow-y: auto;
+    }
+
+    .story {
+      padding: 14px 0;
+      border-bottom: 1px solid #f3eee9;
+      animation: fade .24s ease both;
+    }
+
+    .story:last-child {
+      border-bottom: 0;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .story-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #96909a;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .35px;
+      text-transform: uppercase;
+    }
+
+    .source-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--coral);
+    }
+
+    .story h4 {
+      margin: 7px 0 5px;
+      font: 800 13px/1.45 'Nunito', sans-serif;
+      letter-spacing: -.12px;
+    }
+
+    .story p {
+      margin: 0;
+      color: #807983;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .empty {
+      padding: 50px 15px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .empty span {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .mock-note {
+      margin-top: 9px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: #fff8e9;
+      color: #8b7248;
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .bottomline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: #aaa2a9;
+      font-size: 9px;
+    }
+
+    .bottomline b {
+      color: #79717d;
+    }
+
+    .mobile-hint {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        padding: 22px 22px 30px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .map-card {
+        min-height: 530px;
+      }
+
+      .news-card {
+        min-height: 450px;
+      }
+
+      .stories {
+        max-height: 370px;
+      }
+
+      .map-wrap {
+        height: 380px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        padding: 16px 13px 22px;
+      }
+
+      .topbar {
+        margin-bottom: 20px;
+      }
+
+      .brand h1 {
+        font-size: 17px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .date-pill {
+        display: none;
+      }
+
+      .intro {
+        display: block;
+      }
+
+      .intro h2 {
+        font-size: 27px;
+      }
+
+      .source-note {
+        margin-top: 8px;
+      }
+
+      .layout {
+        gap: 13px;
+      }
+
+      .map-card {
+        min-height: 430px;
+        padding: 17px 13px;
+        border-radius: 18px;
+      }
+
+      .map-wrap {
+        height: 330px;
+        margin: 3px -8px;
+      }
+
+      .map-badge {
+        padding: 7px 8px;
+        font-size: 9px;
+      }
+
+      .map-legend {
+        bottom: 15px;
+        left: 15px;
+      }
+
+      .map-foot {
+        right: 14px;
+        bottom: 15px;
+      }
+
+      .news-card {
+        min-height: 440px;
+        padding: 17px 16px;
+        border-radius: 18px;
+      }
+
+      .mobile-hint {
+        display: inline;
+        color: #aaa2a9;
+        font-size: 9px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🌍</div>
+        <div>
+          <h1>World in a Minute</h1>
+          <small>Big stories. One little map.</small>
+        </div>
+      </div>
+      <div class="top-right">
+        <span class="date-pill" id="dateLabel"></span>
+        <span class="demo-pill">MOCKUP</span>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <h2>The world, at a glance.</h2>
+        <p>Tap any country to see its sample briefing.</p>
+      </div>
+      <div class="source-note">Every country. One playful map.</div>
+    </section>
+
+    <section class="layout" aria-label="Interactive world news map">
+      <div class="map-card">
+        <div class="map-head">
+          <div>
+            <h3>Today's world map</h3>
+            <p>Sample coverage volume · darker coral means more</p>
+          </div>
+          <span class="map-badge">✦ &nbsp;Explore a country</span>
+        </div>
+
+        <div class="map-wrap">
+          <div class="map-loading" id="mapLoading" role="status">Loading the world map…</div>
+          <svg
+            class="world"
+            id="worldMap"
+            viewBox="0 0 800 440"
+            role="img"
+            aria-labelledby="mapTitle mapDesc"
+          >
+            <title id="mapTitle">Interactive world map with country borders</title>
+            <desc id="mapDesc">
+              Select any country to view a sample news briefing. Country colors are mock coverage values.
+            </desc>
+          </svg>
+        </div>
+
+        <div class="map-legend" aria-label="Illustrative coverage scale from less to more">
+          <span>Coverage</span>
+          <div class="legend-dots" aria-hidden="true">
+            <span style="background:#f8d7b8"></span>
+            <span style="background:#f5bda8"></span>
+            <span style="background:#ed786b"></span>
+            <span style="background:#c94343"></span>
+          </div>
+          <span>More</span>
+        </div>
+
+        <div class="map-foot">
+          <span class="mobile-hint">Tap a country · </span>
+          Illustrated map · Not to scale
+        </div>
+      </div>
+
+      <aside class="news-card" aria-live="polite">
+        <div class="news-head">
+          <div>
+            <h3 id="regionTitle">World briefing</h3>
+            <div class="news-sub" id="regionSub">Select a country or explore the world</div>
+          </div>
+          <span class="story-count" id="storyCount">SAMPLE</span>
+        </div>
+
+        <label class="visually-hidden" for="countrySearch">Find a country</label>
+        <input
+          class="country-search"
+          id="countrySearch"
+          list="countryOptions"
+          placeholder="⌕  Find any country…"
+          autocomplete="off"
+        />
+        <datalist id="countryOptions"></datalist>
+
+        <div class="filter-row" role="group" aria-label="Filter by sample publisher">
+          <button class="filter active" data-source="all" type="button">All samples</button>
+          <button class="filter" data-source="NYT" type="button">NYT</button>
+          <button class="filter" data-source="CNN" type="button">CNN</button>
+          <button class="filter" data-source="WaPo" type="button">WaPo</button>
+          <button class="filter" data-source="WSJ" type="button">WSJ</button>
+          <button class="filter" data-source="Bloomberg" type="button">Bloomberg</button>
+          <button class="filter" data-source="MSNBC" type="button">MSNBC</button>
+          <button class="filter" data-source="ABC" type="button">ABC</button>
+          <button class="filter" data-source="CBS" type="button">CBS</button>
+          <button class="filter" data-source="LA Times" type="button">LA Times</button>
+        </div>
+
+        <div class="stories" id="stories"></div>
+
+        <div class="mock-note">
+          Mockup only: headlines, publisher tags, and country coverage levels are illustrative placeholders—not current reporting or real outlet content.
+        </div>
+
+        <div class="bottomline">
+          <span>Real publisher feeds are not connected</span>
+          <b>Read widely. Stay curious. ✦</b>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- External libraries and map data are loaded from jsDelivr. -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const svg = d3.select('#worldMap');
+
+    const demoSources = [
+      'NYT',
+      'CNN',
+      'WaPo',
+      'WSJ',
+      'Bloomberg',
+      'MSNBC',
+      'ABC',
+      'CBS',
+      'LA Times'
+    ];
+
+    const topics = [
+      'World',
+      'Business',
+      'People',
+      'Climate',
+      'Policy',
+      'Culture',
+      'Technology'
+    ];
+
+    const templates = [
+      [
+        'Local priorities come into focus as communities plan for the months ahead',
+        'Residents and local leaders are weighing new ideas, everyday needs and what should come next.'
+      ],
+      [
+        'A changing economy creates fresh questions for families and businesses',
+        'People across the country are adapting to shifting costs, new opportunities and uncertainty.'
+      ],
+      [
+        'Regional partners look for common ground on shared challenges',
+        'The conversations span trade, public services and practical ways to work together.'
+      ],
+      [
+        'Communities find creative ways to protect local places and livelihoods',
+        'Local groups are combining experience and new approaches to prepare for change.'
+      ],
+      [
+        'A closer look at the people shaping the country’s next chapter',
+        'From growing cities to smaller communities, residents are finding new ways to make an impact.'
+      ]
+    ];
+
+    let features = [];
+    let selectedFeature = null;
+    let activeSource = 'all';
+
+    const today = new Date();
+    el('dateLabel').textContent = new Intl.DateTimeFormat(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    }).format(today);
+
+    function volume(name) {
+      let hash = 0;
+      for (const character of name) {
+        hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+      }
+      return (hash % 100) / 100;
+    }
+
+    function coverageColor(name) {
+      return d3.interpolateRgbBasis([
+        '#f8d7b8',
+        '#f4ac91',
+        '#ed786b',
+        '#c94343'
+      ])(volume(name));
+    }
+
+    function showMapError() {
+      const loading = el('mapLoading');
+      if (loading) {
+        loading.innerHTML =
+          '<div class="map-error">The map could not load. Check your internet connection and refresh to try again.</div>';
+      }
+    }
+
+    function selectCountry(feature) {
+      selectedFeature = feature;
+
+      svg
+        .selectAll('.country')
+        .classed('selected', (country) => country === feature)
+        .attr('aria-pressed', (country) => String(country === feature));
+
+      el('countrySearch').value = feature.properties.name;
+      renderBriefing();
+    }
+
+    function drawMap(world) {
+      const countryCollection = topojson.feature(
+        world,
+        world.objects.countries
+      );
+
+      // Antarctica is a continent, not a country; omit it from the country selector.
+      features = countryCollection.features.filter(
+        (feature) => feature.properties.name !== 'Antarctica'
+      );
+
+      const projection = d3.geoNaturalEarth1().fitExtent(
+        [[12, 12], [788, 428]],
+        {
+          type: 'FeatureCollection',
+          features
+        }
+      );
+
+      const path = d3.geoPath(projection);
+
+      svg
+        .selectAll('path.country')
+        .data(features)
+        .join('path')
+        .attr('class', 'country')
+        .attr('d', path)
+        .attr('fill', (feature) => coverageColor(feature.properties.name))
+        .attr('tabindex', 0)
+        .attr('role', 'button')
+        .attr('aria-pressed', 'false')
+        .attr('aria-label', (feature) =>
+          `${feature.properties.name} — view sample news`
+        )
+        .on('click', (event, feature) => selectCountry(feature))
+        .on('keydown', (event, feature) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectCountry(feature);
+          }
+        })
+        .append('title')
+        .text((feature) =>
+          `${feature.properties.name} · illustrative coverage`
+        );
+
+      const countryOptions = el('countryOptions');
+      features
+        .map((feature) => feature.properties.name)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((countryName) => {
+          const option = document.createElement('option');
+          option.value = countryName;
+          countryOptions.appendChild(option);
+        });
+
+      el('mapLoading').remove();
+    }
+
+    function makeStories(countryName) {
+      const seed = Math.floor(volume(countryName) * 1000);
+
+      return templates.map((template, index) => ({
+        source: demoSources[(seed + index * 3) % demoSources.length],
+        topic: topics[(seed + index * 2) % topics.length],
+        title: `${countryName}: ${template[0]}`,
+        summary: template[1]
+      }));
+    }
+
+    function renderBriefing() {
+      const countryName = selectedFeature?.properties.name;
+
+      el('regionTitle').textContent = countryName
+        ? `${countryName} briefing`
+        : 'World briefing';
+
+      el('regionSub').textContent = countryName
+        ? 'A sample snapshot for this country'
+        : 'Choose any country to explore its sample briefing';
+
+      let stories = makeStories(countryName || 'World');
+
+      if (activeSource !== 'all') {
+        stories = stories.filter((story) => story.source === activeSource);
+      }
+
+      el('storyCount').textContent =
+        `${stories.length} ${stories.length === 1 ? 'SAMPLE' : 'SAMPLES'}`;
+
+      if (stories.length === 0) {
+        el('stories').innerHTML =
+          '<div class="empty"><span aria-hidden="true">🗞️</span>No placeholder stories for this publisher.</div>';
+        return;
+      }
+
+      el('stories').innerHTML = stories
+        .map((story, index) => `
+          <article class="story" style="animation-delay:${index * 35}ms">
+            <div class="story-meta">
+              <i class="source-dot" aria-hidden="true"></i>
+              DEMO · ${story.source}
+              <span>·</span>
+              ${story.topic}
+            </div>
+            <h4>${story.title}</h4>
+            <p>${story.summary}</p>
+          </article>
+        `)
+        .join('');
+    }
+
+    el('countrySearch').addEventListener('change', (event) => {
+      const target = event.target.value.trim().toLocaleLowerCase();
+      const found = features.find(
+        (feature) =>
+          feature.properties.name.toLocaleLowerCase() === target
+      );
+
+      if (found) {
+        event.target.setCustomValidity('');
+        selectCountry(found);
+      } else if (target) {
+        event.target.setCustomValidity('Choose a country from the list.');
+        event.target.reportValidity();
+        window.setTimeout(() => event.target.setCustomValidity(''), 1800);
+      }
+    });
+
+    document.querySelectorAll('.filter').forEach((button) => {
+      button.addEventListener('click', () => {
+        activeSource = button.dataset.source;
+
+        document.querySelectorAll('.filter').forEach((filterButton) => {
+          filterButton.classList.toggle('active', filterButton === button);
+        });
+
+        renderBriefing();
+      });
+    });
+
+    renderBriefing();
+
+    if (!window.d3 || !window.topojson) {
+      showMapError();
+    } else {
+      d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+        .then(drawMap)
+        .catch(showMapError);
+    }
+  </script>
+</body>
+</html>
